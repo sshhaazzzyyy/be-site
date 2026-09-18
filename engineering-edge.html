@@ -21,7 +21,7 @@
 
         /* HEADER */
         header { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(12px); z-index: 100; border-bottom: 1px solid var(--border-faint); }
-        .logo { display: flex; gap: 8px; font-size: 24px; letter-spacing: -0.5px; text-decoration: none; }
+        .logo { display: flex; gap: 8px; font-family: 'Montserrat', sans-serif; font-size: 24px; letter-spacing: -0.5px; text-decoration: none; }
         .logo span:first-child { font-weight: 900; color: var(--text-primary); }
         .logo span:last-child { font-weight: 600; color: var(--accent); }
         nav { display: flex; align-items: center; gap: 40px; }
@@ -107,13 +107,14 @@
         /* RESPONSIVE CSS */
         @media (max-width: 1024px) {
             .footer-grid { grid-template-columns: 1fr 1fr; gap: 50px; }
+            .logo { font-size: 18px !important;}
         }
         @media (max-width: 900px) {
             .mobile-toggle { display: block; }
-            nav { position: absolute; top: 100%; left: 0; width: 100%; background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(15px); flex-direction: column; align-items: flex-start; padding: 0 5% 30px 5%; border-bottom: 1px solid var(--accent); clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); transition: clip-path 0.4s cubic-bezier(0.19, 1, 0.22, 1); gap: 0; }
-            nav.nav-open { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
-            nav a { width: 100%; padding: 20px 0; border-bottom: 1px solid #222; font-size: 16px; }
-            nav a.btn { margin-top: 20px; text-align: center; border-bottom: 1px solid var(--accent); }
+            #mainNav { position: absolute; top: 100%; left: 0; width: 100%; background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(15px); flex-direction: column; align-items: flex-start; padding: 0 5% 30px 5%; border-bottom: 1px solid var(--accent); clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); transition: clip-path 0.4s cubic-bezier(0.19, 1, 0.22, 1); gap: 0; }
+            #mainNav.nav-open { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+            #mainNav a { width: 100%; padding: 20px 0; border-bottom: 1px solid #222; font-size: 16px; }
+            #mainNav a.btn { margin-top: 20px; text-align: center; border-bottom: 1px solid var(--accent); }
             
             .hero-internal h1 { font-size: 48px; }
             .timeline-line { display: none; }
@@ -122,8 +123,10 @@
             .node-marker { position: relative; left: 0; transform: none; margin-bottom: 10px; border-width: 2px; }
             .node-visual { width: 100%; height: 250px; }
             .rigor-grid { grid-template-columns: 1fr; }
+            .logo { font-size: 18px !important;}
         }
         @media (max-width: 600px) {
+            .logo { font-size: 18px !important;}
             .marquee span { font-size: 14px; letter-spacing: 0.5px; }
             .marquee { gap: 20px; }
             .footer-grid { grid-template-columns: 1fr; gap: 40px; }
