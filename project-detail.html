@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment Case Study | Blueprint Engines</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Montserrat:wght@600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- [GLOBAL DESIGN SYSTEM] --- */
+        :root { 
+            --bg-top: #0a0a0a; 
+            --accent: #2563EB; /* Updated Electric Cobalt per new spec */
+            --text-primary: #FFFFFF; 
+            --text-body: #A3A3A3; 
+            --border-faint: rgba(255, 255, 255, 0.1); 
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg-top); color: var(--text-body); font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; }
+        h1, h2, h3 { font-family: 'Montserrat', sans-serif; color: var(--text-primary); }
+        .mono { font-family: 'Space Mono', monospace; text-transform: uppercase; }
+        
+        .grid-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -2; pointer-events: none; }
+
+        /* Buttons */
+        .btn { display: inline-flex; justify-content: center; align-items: center; padding: 18px 36px; font-family: 'Space Mono', monospace; font-weight: 700; text-transform: uppercase; text-decoration: none; border-radius: 0; transition: all 0.3s ease; cursor: pointer; text-align: center; border: 1px solid transparent; }
+        .btn-primary { background: var(--accent); color: var(--text-primary); border-color: var(--accent); }
+        .btn-primary:hover { background: #1D4ED8; box-shadow: 0 0 20px rgba(37, 99, 235, 0.4); }
+
+        /* --- [HEADER & MOBILE NAV] --- */
+        header { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 100; border-bottom: 1px solid var(--border-faint); }
+        .logo { display: flex; gap: 8px; font-size: 24px; letter-spacing: -0.5px; text-decoration: none; }
+        .logo span:first-child { font-weight: 900; color: var(--text-primary); }
+        .logo span:last-child { font-weight: 600; color: var(--accent); }
+        nav { display: flex; align-items: center; gap: 40px; }
+        nav a { color: var(--text-primary); text-decoration: none; font-weight: 300; font-size: 14px; transition: color 0.3s ease; }
+        nav a:hover, nav a.active { color: var(--accent); }
+
+        .mobile-toggle { display: none; background: transparent; border: 1px solid var(--text-primary); color: var(--text-primary); padding: 8px 16px; font-family: 'Space Mono', monospace; font-size: 12px; cursor: pointer; text-transform: uppercase; }
+        .mobile-toggle:hover { background: rgba(255, 255, 255, 0.1); }
+
+        /* --- [SECTION 1: THE DEPLOYMENT HERO] --- */
+        .deployment-hero {
+            position: relative;
+            width: 100%;
+            height: 90vh;
+            border-bottom: 1px solid var(--border-faint);
+            display: flex;
+            align-items: flex-end;
+            margin-top: 60px;
+        }
+        .hero-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: 1; filter: brightness(0.6) contrast(1.1);
+        }
+        .hero-data-panel {
+            position: relative; z-index: 2; width: 100%; height: 30%;
+            background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid var(--accent);
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+        }
+        .data-col {
+            padding: 40px 5%;
+            border-right: 1px solid var(--border-faint);
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .data-col:last-child { border-right: none; }
+        .data-col h1 { font-size: 42px; font-weight: 900; line-height: 1.1; text-transform: uppercase; letter-spacing: -1px; }
+        .data-label { color: var(--accent); font-size: 12px; font-weight: 700; margin-bottom: 8px; letter-spacing: 1px; }
+        .data-value { color: var(--text-primary); font-size: 16px; font-weight: 700; }
+
+        /* --- [SECTION 2: ARCHITECTURAL BOTTLENECK & SOLUTION] --- */
+        .bottleneck-solution {
+            padding: 120px 5%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            border-bottom: 1px solid var(--border-faint);
+        }
+        .text-block h3 { font-size: 32px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.5px; }
+        .text-block p { font-size: 18px; line-height: 1.8; color: var(--text-body); }
+
+        /* --- [SECTION 3: THE VISUAL PIPELINE] --- */
+        .visual-pipeline { width: 100%; }
+        
+        /* Component 1: Slider */
+        .slider-container {
+            position: relative; width: 100%; height: 70vh;
+            border-bottom: 1px solid var(--border-faint);
+            overflow: hidden;
+            background: #111;
+        }
+        .slider-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; object-position: left;
+        }
+        .slider-overlay {
+            position: absolute; top: 0; left: 0; width: 50%; height: 100%;
+            overflow: hidden; border-right: 1px solid var(--text-primary);
+            z-index: 2;
+        }
+        .slider-overlay img {
+            width: 100vw; height: 100%; object-fit: cover; object-position: left; filter: hue-rotate(180deg) brightness(0.8) contrast(1.5); /* Simulating electric wireframe look */
+        }
+        .slider-handle {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 24px; height: 24px; background: var(--accent); z-index: 3;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        .slider-input {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 4; opacity: 0; cursor: col-resize;
+        }
+
+        /* Component 2: Cinematic Video */
+        .cinematic-player {
+            position: relative; width: 100%; height: 80vh;
+            border-bottom: 1px solid var(--border-faint);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .cinematic-player img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); z-index: 1; }
+        .play-ui { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .play-btn { width: 80px; height: 60px; background: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; transition: transform 0.3s; }
+        .play-btn:hover { transform: scale(1.05); }
+        .play-btn svg { width: 24px; height: 24px; fill: var(--text-primary); }
+        .time-stamp { color: var(--text-primary); font-size: 14px; letter-spacing: 2px; }
+
+        /* Component 3: Renders Grid */
+        .static-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            border-bottom: 1px solid var(--border-faint);
+        }
+        .grid-item {
+            position: relative; height: 500px;
+            border-right: 1px solid var(--border-faint);
+            overflow: hidden;
+        }
+        .grid-item:last-child { border-right: none; }
+        .grid-item img {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: grayscale(50%) brightness(0.7);
+            transition: filter 0.4s ease, transform 0.6s ease;
+        }
+        .grid-item:hover img {
+            filter: grayscale(0%) brightness(1); transform: scale(1.05);
+        }
+        .micro-tag {
+            position: absolute; bottom: 30px; left: 30px;
+            background: rgba(10,10,10,0.85); backdrop-filter: blur(5px);
+            border: 1px solid var(--border-faint); padding: 10px 16px;
+            color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: 1px;
+            opacity: 0; transform: translateY(10px); transition: all 0.4s ease;
+        }
+        .grid-item:hover .micro-tag { opacity: 1; transform: translateY(0); }
+
+        /* --- [SECTION 4: INTERACTIVE SHOWROOM] --- */
+        .interactive-showroom { padding: 120px 5%; border-bottom: 1px solid var(--border-faint); }
+        .showroom-header { color: var(--accent); font-size: 14px; font-weight: 700; margin-bottom: 40px; letter-spacing: 1px; }
+        .iframe-container {
+            width: 100%; height: 75vh; border: 1px solid var(--border-faint);
+            position: relative; background: #050505;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .iframe-container img { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; } /* Placeholder for actual WebGL Canvas */
+        .drag-instruction {
+            position: absolute; top: 30px; left: 30px; z-index: 2;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border-faint);
+            padding: 12px 20px; color: var(--text-primary); font-size: 12px; font-weight: 700; letter-spacing: 1px;
+        }
+
+        /* --- [SECTION 5: TERMINAL CTA] --- */
+        .terminal-cta { display: flex; width: 100%; }
+        .cta-left, .cta-right { width: 50%; padding: 120px 5%; display: flex; flex-direction: column; justify-content: center; }
+        .cta-left { border-right: 1px solid var(--border-faint); }
+        .cta-left h2 { font-size: 42px; font-weight: 800; margin-bottom: 40px; line-height: 1.1; }
+        .cta-right { background: rgba(255,255,255,0.02); text-decoration: none; transition: background 0.3s; }
+        .cta-right:hover { background: rgba(37, 99, 235, 0.05); }
+        .next-label { color: var(--accent); font-size: 13px; font-weight: 700; margin-bottom: 20px; letter-spacing: 1px; }
+        .next-title { color: var(--text-primary); font-size: 32px; font-weight: 800; font-family: 'Montserrat'; display: flex; align-items: center; justify-content: space-between; }
+
+        /* --- [GLOBAL FOOTER] --- */
+        .global-footer { position: relative; background: var(--bg-top); color: var(--text-body); width: 100%; border-top: 1px solid var(--text-primary); margin-top: auto; }
+        .global-footer::after { content: ''; position: absolute; top: -1px; left: 0; width: 20%; height: 1px; background: var(--accent); box-shadow: 0 0 20px 3px rgba(37, 99, 235, 0.8); z-index: 2; }
+        .footer-grid { display: grid; grid-template-columns: 3fr 2fr 2.5fr 2.5fr; gap: 60px; padding: 80px 5% 60px 5%; }
+        .col-header { color: var(--text-primary); font-size: 14px; font-weight: 700; margin-bottom: 24px; letter-spacing: 1px; }
+        .footer-col-1 .logo { display: inline-flex; gap: 8px; font-family: 'Montserrat', sans-serif; font-size: 24px; letter-spacing: -0.5px; text-decoration: none; margin-bottom: 16px; }
+        .footer-col-1 .logo span:first-child { font-weight: 900; color: var(--text-primary); }
+        .footer-col-1 .logo span:last-child { font-weight: 600; color: var(--accent); }
+        .footer-col-1 .micro-copy { color: var(--accent); font-size: 12px; font-weight: 700; margin-bottom: 16px; letter-spacing: 1px; }
+        .footer-col-1 p { font-size: 14px; line-height: 1.6; margin-bottom: 24px; max-width: 90%; }
+        .trust-box { display: inline-block; border: 1px solid var(--border-faint); padding: 8px 12px; font-size: 11px; color: var(--text-primary); letter-spacing: 1px; }
+        
+        .footer-nav { display: flex; flex-direction: column; gap: 16px; }
+        .footer-nav a { color: var(--text-body); text-decoration: none; font-size: 14px; font-weight: 300; transition: color 0.3s ease; position: relative; width: fit-content; padding-bottom: 2px; }
+        .footer-nav a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 1px; background: var(--accent); transition: width 0.3s cubic-bezier(0.19, 1, 0.22, 1); }
+        .footer-nav a:hover { color: var(--text-primary); }
+        .footer-nav a:hover::after { width: 100%; }
+
+        .contact-list { display: flex; flex-direction: column; gap: 16px; font-size: 14px; }
+        .contact-item { display: flex; flex-direction: column; gap: 4px; }
+        .contact-label { color: var(--text-primary); font-weight: 400; }
+        .contact-data { color: var(--text-body); font-weight: 300; }
+        .contact-data.mono { color: var(--text-primary); font-size: 13px; }
+
+        .social-icons { display: flex; gap: 16px; margin-bottom: 30px; }
+        .social-icons a { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1px solid var(--border-faint); transition: all 0.3s ease; }
+        .social-icons svg { width: 18px; height: 18px; fill: none; stroke: var(--text-primary); stroke-width: 1.5; stroke-linecap: square; stroke-linejoin: miter; transition: stroke 0.3s ease; }
+        .social-icons a:hover { border-color: var(--text-primary); background: rgba(255,255,255,0.05); }
+        .social-icons a:hover svg { stroke: var(--accent); }
+
+        .btn-footer { display: inline-block; background: transparent; color: var(--text-primary); border: 1px solid var(--text-primary); padding: 16px 24px; font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; text-transform: uppercase; text-decoration: none; transition: all 0.3s ease; width: 100%; text-align: center; }
+        .btn-footer:hover { background: var(--text-primary); color: var(--bg-top); border-color: var(--text-primary); }
+
+        .footer-bottom-bar { border-top: 1px solid #333333; padding: 24px 5%; display: flex; justify-content: space-between; align-items: center; }
+        .bottom-copyright { font-size: 12px; color: #777; }
+        .bottom-links { display: flex; gap: 24px; }
+        .bottom-links a { color: #777; text-decoration: none; font-size: 12px; transition: color 0.3s; }
+        .bottom-links a:hover { color: var(--text-primary); }
+
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media (max-width: 1024px) {
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 50px; }
+            .hero-data-panel { grid-template-columns: 1fr 1fr; height: auto; }
+            .data-col { padding: 30px 5%; border-bottom: 1px solid var(--border-faint); }
+            .data-col:nth-child(even) { border-right: none; }
+            .data-col:nth-child(3), .data-col:nth-child(4) { border-bottom: none; }
+            .bottleneck-solution { gap: 40px; }
+        }
+
+        @media (max-width: 900px) {
+            /* Mobile Nav Dropdown */
+            .mobile-toggle { display: block; }
+            nav {
+                position: absolute; top: 100%; left: 0; width: 100%;
+                background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(15px);
+                flex-direction: column; align-items: flex-start;
+                padding: 0 5% 30px 5%; border-bottom: 1px solid var(--accent);
+                clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+                transition: clip-path 0.4s cubic-bezier(0.19, 1, 0.22, 1); gap: 0;
+            }
+            nav.nav-open { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+            nav a { width: 100%; padding: 20px 0; border-bottom: 1px solid #222; font-size: 16px; }
+            nav a.btn { margin-top: 20px; text-align: center; border-bottom: 1px solid var(--accent); }
+            
+            /* Structural Fixes */
+            .deployment-hero { height: auto; display: block; }
+            .hero-bg { position: relative; height: 50vh; }
+            .bottleneck-solution { grid-template-columns: 1fr; padding: 80px 5%; }
+            .static-grid { grid-template-columns: 1fr; }
+            .grid-item { border-right: none; border-bottom: 1px solid var(--border-faint); height: 400px; }
+            .terminal-cta { flex-direction: column; }
+            .cta-left, .cta-right { width: 100%; border-right: none; border-bottom: 1px solid var(--border-faint); padding: 80px 5%; }
+            .cta-left h2 { font-size: 36px; }
+        }
+
+        @media (max-width: 600px) {
+            .hero-data-panel { grid-template-columns: 1fr; }
+            .data-col { border-right: none; border-bottom: 1px solid var(--border-faint); }
+            .data-col:last-child { border-bottom: none; }
+            .slider-container { height: 400px; }
+            .cinematic-player { height: 50vh; }
+            
+            .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+            .footer-bottom-bar { flex-direction: column; gap: 16px; text-align: center; }
+            .bottom-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-overlay"></div>
+
+    <!-- GLOBAL HEADER & NAV -->
+    <header>
+        <a href="index.html" class="logo">
+            <span>BLUEPRINT</span><span>ENGINES</span>
+        </a>
+        <button class="mobile-toggle mono" id="mobileToggle">[ MENU ]</button>
+        <nav id="mainNav">
+            <a href="about.html">About Us</a>
+            <a href="corporate-portfolio.html">Portfolio</a>
+            <a href="engineering-edge.html">How We Work</a>
+            <a href="cad-audit.html" class="btn btn-primary mono" style="padding: 10px 20px; font-size: 12px;">[ CONTACT US ]</a>
+        </nav>
+    </header>
+
+    <!-- SECTION 1: THE DEPLOYMENT HERO -->
+    <section class="deployment-hero">
+        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80" alt="BAT Corporate Interior" class="hero-bg">
+        
+        <div class="hero-data-panel">
+            <div class="data-col">
+                <h1>BAT CORPORATE HQ</h1>
+            </div>
+            <div class="data-col mono">
+                <div class="data-label">SCALE</div>
+                <div class="data-value">120,000 SQ FT</div>
+            </div>
+            <div class="data-col mono">
+                <div class="data-label">TECH STACK</div>
+                <div class="data-value">UNREAL ENGINE 5<br>LIDAR SCANS</div>
+            </div>
+            <div class="data-col mono">
+                <div class="data-label">DEPLOYMENT TIME</div>
+                <div class="data-value">14 DAYS (SLA MET)</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: THE ARCHITECTURAL BOTTLENECK & SOLUTION -->
+    <section class="bottleneck-solution">
+        <div class="text-block">
+            <h3>The Problem</h3>
+            <p>BAT needed high-quality 3D visuals to raise pre-construction capital from overseas investors — before the old building was even demolished. Normal visualization studios wanted 8 weeks to deliver static images. That timeline didn't work.</p>
+        </div>
+        <div class="text-block">
+            <h3>Our Solution</h3>
+            <p>We took their raw building data and built a fully interactive, real-time 3D digital twin — streamed straight to any browser. It was ready in just 14 days, letting investors anywhere in the world walk through the building virtually.</p>
+        </div>
+    </section>
+
+    <!-- SECTION 3: THE VISUAL PIPELINE -->
+    <section class="visual-pipeline">
+        
+        <!-- Component 1: Tech/Render Split Slider -->
+        <div class="slider-container" id="compareSlider">
+            <!-- Final Render (Base) -->
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80" alt="Final Render" class="slider-img">
+            
+            <!-- Wireframe (Overlay) -->
+            <div class="slider-overlay" id="compareOverlay">
+                <!-- Using the same image but with CSS filters applied to simulate a technical wireframe look -->
+                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80" alt="Wireframe">
+            </div>
+
+            <!-- Slider Handle & Input -->
+            <div class="slider-handle" id="compareHandle"></div>
+            <input type="range" min="0" max="100" value="50" class="slider-input" id="compareInput">
+        </div>
+
+        <!-- Component 2: Cinematic Walkthrough -->
+        <div class="cinematic-player">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80" alt="Video Thumbnail">
+            <div class="play-ui">
+                <div class="play-btn">
+                    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </div>
+                <div class="time-stamp mono">00:00 / 02:45</div>
+            </div>
+        </div>
+
+        <!-- Component 3: Static Renders Grid -->
+        <div class="static-grid">
+            <div class="grid-item">
+                <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Render 1">
+                <div class="micro-tag mono">// INTERIOR LIGHTING</div>
+            </div>
+            <div class="grid-item">
+                <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80" alt="Render 2">
+                <div class="micro-tag mono">// MATERIALS & FINISHES</div>
+            </div>
+            <div class="grid-item">
+                <img src="https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&w=800&q=80" alt="Render 3">
+                <div class="micro-tag mono">// ROOM SCALE & LAYOUT</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: THE INTERACTIVE SHOWROOM (WEB3D EMBED) -->
+    <section class="interactive-showroom">
+        <div class="showroom-header mono">// TRY THE LIVE 3D MODEL</div>
+        <div class="iframe-container">
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80" alt="Interactive Canvas Placeholder">
+            <div class="drag-instruction mono">[ CLICK & DRAG TO EXPLORE THE BUILDING ]</div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: TERMINAL CTA -->
+    <section class="terminal-cta">
+        <div class="cta-left">
+            <h2>Ready To Launch Your Project?</h2>
+            <a href="cad-audit.html" class="btn btn-primary" style="width: fit-content;">GET YOUR FREE AUDIT &rarr;</a>
+        </div>
+        <a href="project-detail.html" class="cta-right">
+            <div class="next-label mono">// NEXT PROJECT</div>
+            <div class="next-title">
+                The Obsidian Towers <span>&rarr;</span>
+            </div>
+        </a>
+    </section>
+
+    <!-- BEGIN GLOBAL FOOTER -->
+    <footer class="global-footer">
+        <div class="footer-grid">
+            
+            <div class="footer-col-1">
+                <a href="index.html" class="logo">
+                    <span>BLUEPRINT</span><span>ENGINES</span>
+                </a>
+                <div class="micro-copy mono">// SELLING YOUR PROJECT BEFORE IT'S BUILT</div>
+                <p>We build 3D sales tools and virtual walkthroughs that help Pakistan's top developers sell more units, faster — before the first floor is even poured.</p>
+                <div class="trust-box mono">[ BAT VENDOR APPROVED ]</div>
+            </div>
+
+            <div class="footer-col-2">
+                <div class="col-header mono">SYSTEM NAVIGATION</div>
+                <nav class="footer-nav">
+                    <a href="about.html">About Us</a>
+                    <a href="corporate-portfolio.html">Portfolio</a>
+                    <a href="engineering-edge.html">How We Work</a>
+                    <a href="cad-audit.html">Contact Us</a>
+                </nav>
+            </div>
+
+            <div class="footer-col-3">
+                <div class="col-header mono">DIRECT COMMS</div>
+                <div class="contact-list">
+                    <div class="contact-item">
+                        <span class="contact-label">T: <span class="contact-data mono">+92 300 1234567</span></span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">E: <span class="contact-data mono">deploy@blueprintengines.com</span></span>
+                    </div>
+                    <div class="contact-item" style="margin-top: 8px;">
+                        <span class="contact-label">HQ:</span>
+                        <span class="contact-data">Corporate Tower, Blue Area, Islamabad</span>
+                    </div>
+                    <div class="contact-item" style="margin-top: 8px;">
+                        <span class="contact-label">Office Hours:</span>
+                        <span class="contact-data mono">OPERATING: 09:00 - 18:00 PKT</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-col-4">
+                <div class="col-header mono">NETWORK DATA</div>
+                <div class="social-icons">
+                    <a href="#" aria-label="LinkedIn">
+                        <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                    </a>
+                    <a href="#" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4" ry="4"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                    <a href="#" aria-label="Behance / ArtStation">
+                        <svg viewBox="0 0 24 24"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                    </a>
+                </div>
+                <a href="cad-audit.html" class="btn-footer">GET YOUR FREE AUDIT &rarr;</a>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom-bar">
+            <div class="bottom-copyright mono">
+                © 2026 BLUEPRINT ENGINES. ALL SYSTEMS SECURED.
+            </div>
+            <div class="bottom-links">
+                <a href="#">Non-Disclosure Agreement (NDA) Protocol</a>
+                <a href="#">Terms of Engineering</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    <!-- END GLOBAL FOOTER -->
+
+    <script>
+        // Mobile Navigation Toggle
+        document.getElementById('mobileToggle').addEventListener('click', function() {
+            document.getElementById('mainNav').classList.toggle('nav-open');
+            this.innerText = this.innerText === '[ MENU ]' ? '[ CLOSE ]' : '[ MENU ]';
+        });
+
+        // Interactive "Before & After" Slider Script
+        const sliderInput = document.getElementById('compareInput');
+        const overlay = document.getElementById('compareOverlay');
+        const handle = document.getElementById('compareHandle');
+
+        sliderInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            overlay.style.width = val + '%';
+            handle.style.left = val + '%';
+        });
+    </script>
+</body>
+</html>
