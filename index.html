@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blueprint Engines | Spatial Pre-Construction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Montserrat:wght@600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- GLOBAL DESIGN SYSTEM & SHARED CSS --- */
+        :root {
+            --bg-top: #0a0a0a; --bg-bottom: #161616; --accent: #0047FF;
+            --text-primary: #FFFFFF; --text-body: #A3A3A3; --border-faint: rgba(255, 255, 255, 0.15);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: linear-gradient(to bottom, var(--bg-top), var(--bg-bottom)); color: var(--text-body); font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; }
+        h1, h2, h3 { font-family: 'Montserrat', sans-serif; color: var(--text-primary); }
+        .mono { font-family: 'Space Mono', monospace; text-transform: uppercase; }
+        
+        .grid-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -2; pointer-events: none; }
+        
+        /* Buttons */
+        .btn { display: inline-flex; justify-content: center; align-items: center; padding: 16px 32px; font-family: 'Space Mono', monospace; font-weight: 700; text-transform: uppercase; text-decoration: none; border-radius: 0; transition: all 0.3s ease; cursor: pointer; border: 1px solid transparent; text-align: center; }
+        .btn-primary { background: var(--accent); color: var(--text-primary); border-color: var(--accent); }
+        .btn-primary:hover { background: #0038cc; box-shadow: 0 0 15px rgba(0, 71, 255, 0.5); }
+        .btn-outline { background: transparent; color: var(--text-primary); border-color: var(--text-primary); }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+        /* HEADER */
+        header { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(12px); z-index: 100; border-bottom: 1px solid var(--border-faint); }
+        .logo { display: flex; gap: 8px; font-size: 24px; letter-spacing: -0.5px; text-decoration: none; }
+        .logo span:first-child { font-weight: 900; color: var(--text-primary); }
+        .logo span:last-child { font-weight: 600; color: var(--accent); }
+        nav { display: flex; align-items: center; gap: 40px; }
+        nav a { color: var(--text-primary); text-decoration: none; font-weight: 300; font-size: 14px; transition: color 0.3s; }
+        nav a:hover { color: var(--accent); }
+
+        /* HERO */
+        .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 0 5%; overflow: hidden; }
+        .hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.2; z-index: -1; filter: grayscale(100%) contrast(1.2); }
+        .spatial-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 15vw; color: transparent; -webkit-text-stroke: 2px var(--accent); z-index: -1; opacity: 0.3; pointer-events: none; }
+        .hero-content { max-width: 800px; z-index: 1; }
+        .hero h1 { font-weight: 900; font-size: 80px; line-height: 1.05; margin-bottom: 24px; letter-spacing: -2px; }
+        .hero p { font-size: 20px; font-weight: 300; margin-bottom: 40px; max-width: 650px; line-height: 1.6; }
+        .hero-buttons { display: flex; gap: 20px; }
+
+        /* PREMIUM TRUST MARQUEE */
+        .trust-bar { padding: 25px 0; border-top: 1px solid var(--border-faint); border-bottom: 1px solid var(--border-faint); background: rgba(0,0,0,0.5); overflow: hidden; white-space: nowrap; position: relative; }
+        .marquee { display: flex; gap: 40px; animation: scroll 35s linear infinite; }
+        .marquee span { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+        .marquee .divider { color: var(--accent); opacity: 0.8; }
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* THE PIVOT */
+        .pivot { display: flex; padding: 120px 5%; gap: 60px; align-items: center; }
+        .pivot > div { flex: 1; }
+        .pivot-visual { height: 450px; position: relative; border: 1px solid #333; overflow: hidden; }
+        .pivot-visual img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.8) contrast(1.2); transition: transform 0.5s; }
+        .pivot-visual:hover img { transform: scale(1.05); }
+        .pivot-text h2 { font-weight: 800; font-size: 40px; margin-bottom: 24px; line-height: 1.1; }
+        .pivot-text p { font-size: 18px; line-height: 1.7; }
+
+        /* --- NEW SECTION: THE CINEMATIC EXECUTION --- */
+        .cinematic {
+            padding: 120px 5%;
+            background: #0a0a0a;
+            border-top: 1px solid var(--border-faint);
+        }
+        
+        .cinematic-header {
+            max-width: 800px;
+            margin-bottom: 60px;
+        }
+
+        .micro-header {
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+
+        .cinematic-header h2 {
+            font-weight: 900;
+            font-size: 56px;
+            margin-bottom: 24px;
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        .cinematic-header p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .cinematic-tags {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cinematic-tags span {
+            color: var(--text-primary);
+            font-size: 14px;
+            letter-spacing: 1px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-faint);
+            padding: 10px 16px;
+        }
+
+        .cinematic-media {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #111;
+            border: 1px solid var(--text-primary);
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 20px 50px -10px rgba(0, 71, 255, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cinematic-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: contrast(1.1) brightness(0.8);
+            transition: filter 0.5s;
+        }
+
+        .cinematic-media:hover img {
+            filter: contrast(1.1) brightness(1);
+        }
+
+        .media-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            background: rgba(0,0,0,0.85);
+            border: 1px solid var(--border-faint);
+            padding: 12px 24px;
+            color: var(--accent);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        .media-indicator::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 0; /* Brutalist square */
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 71, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 71, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 71, 255, 0); }
+        }
+
+        /* --- ASSET TYPOLOGIES --- */
+        .typologies { padding: 120px 5%; background: #0a0a0a; border-top: 1px solid var(--border-faint); border-bottom: 1px solid var(--border-faint); }
+        .typologies-header { margin-bottom: 60px; }
+        .typologies-header h2 { font-weight: 900; font-size: 48px; margin-bottom: 20px; letter-spacing: -1px; }
+        .typologies-header p { font-size: 18px; color: var(--text-body); max-width: 700px; line-height: 1.6; }
+        .typologies-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .typology-card { position: relative; height: 600px; border: 1px solid var(--border-faint); border-bottom: 2px solid transparent; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; transition: all 0.4s ease; cursor: pointer; }
+        .typology-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: grayscale(100%) brightness(0.4) contrast(1.2); transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
+        .typology-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: linear-gradient(to top, #0a0a0a 10%, transparent); z-index: 2; }
+        .typology-content { position: relative; z-index: 3; padding: 40px; }
+        .typology-tag { color: var(--accent); font-size: 13px; font-weight: 700; margin-bottom: 16px; display: block; }
+        .typology-content h3 { font-size: 24px; font-weight: 700; margin-bottom: 16px; line-height: 1.2; }
+        .typology-content p { font-size: 16px; line-height: 1.6; color: var(--text-body); }
+        .typology-card:hover { border-bottom-color: var(--accent); box-shadow: 0 10px 40px rgba(0, 71, 255, 0.1); }
+        .typology-card:hover .typology-bg { filter: grayscale(0%) brightness(0.7) contrast(1.1); transform: scale(1.05); }
+
+        /* FOOTER CTA */
+        footer { background: #050505; padding: 120px 5% 40px 5%; text-align: center; }
+        .footer-content { max-width: 800px; margin: 0 auto 80px auto; display: flex; flex-direction: column; align-items: center; }
+        .footer-content h2 { font-size: 48px; font-weight: 900; line-height: 1.1; margin-bottom: 20px; }
+        .footer-content p { font-size: 18px; line-height: 1.6; max-width: 600px; margin-bottom: 40px; color: var(--text-body); }
+        .footer-actions { display: flex; gap: 20px; justify-content: center; width: 100%; }
+        .footer-bottom { border-top: 1px solid #222; padding-top: 40px; }
+        
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .typologies-grid { grid-template-columns: 1fr; }
+            .typology-card { height: 450px; }
+        }
+        @media (max-width: 900px) {
+            .hero h1 { font-size: 50px; }
+            .pivot { flex-direction: column; }
+            .cinematic-header h2 { font-size: 42px; }
+            .footer-content h2 { font-size: 36px; }
+            .hero-buttons, .footer-actions, .cinematic-tags { flex-direction: column; }
+            .hero-buttons .btn, .footer-actions .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-overlay"></div>
+
+    <header>
+        <a href="index.html" class="logo"><span>BLUEPRINT</span><span>ENGINES</span></a>
+        <nav>
+            <a href="engineering-edge.html">The Engineering Edge</a>
+            <a href="corporate-portfolio.html">Corporate Portfolio</a>
+            <a href="cad-audit.html" class="btn btn-primary mono" style="padding: 10px 20px; font-size: 12px;">[ GET A FREE AUDIT ]</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <img src="https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=1920&q=80" alt="Architecture Background" class="hero-bg">
+        <div class="spatial-text"></div>
+        <div class="hero-content">
+            <h1>Sell Out Your Project Before You Break Ground.</h1>
+            <p>We build stunning 3D walkthroughs and virtual sales tools that help Pakistan's top developers sell faster — to local buyers and overseas Pakistanis alike.</p>
+            <div class="hero-buttons">
+                <a href="cad-audit.html" class="btn btn-primary">[ START MY FREE AUDIT ]</a>
+                <a href="corporate-portfolio.html" class="btn btn-outline">[ SEE OUR PROJECTS ]</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust-bar">
+        <div class="marquee">
+            <span>TRUSTED BY BRITISH AMERICAN TOBACCO & TOP MULTINATIONAL BRANDS</span> <span class="divider">//</span> 
+            <span>ON-TIME DELIVERY, GUARANTEED, FOR PAKISTAN'S TOP DEVELOPERS</span> <span class="divider">//</span>
+            <span>TRUSTED BY BRITISH AMERICAN TOBACCO & TOP MULTINATIONAL BRANDS</span> <span class="divider">//</span> 
+            <span>ON-TIME DELIVERY, GUARANTEED, FOR PAKISTAN'S TOP DEVELOPERS</span> <span class="divider">//</span>
+        </div>
+    </section>
+
+
+
+    <!-- NEW SECTION: THE CINEMATIC EXECUTION -->
+    <section class="cinematic">
+        <div class="cinematic-header">
+            <div class="micro-header mono">// CINEMATIC 3D VISUALS</div>
+            <h2>More Than A Picture.<br>A Living Building.</h2>
+            <p>We don't just make pretty pictures. We build real, moving 3D worlds — so real that your investors can feel the size, light, and finish of your project, months before the first brick is laid.</p>
+            
+            <div class="cinematic-tags mono">
+                <span>[ UNREAL ENGINE 5 ]</span>
+                <span>[ PHOTOREALISTIC LIGHTING ]</span>
+                <span>[ CINEMATIC MOTION ]</span>
+            </div>
+        </div>
+
+        <div class="cinematic-media">
+            <!-- Unsplash placeholder representing a high-end Unreal Engine architectural render -->
+            <img src="1.jpeg" alt="Cinematic Architectural Render">
+            
+            <!-- Brutalist Media/Play Indicator -->
+            <div class="media-indicator mono">
+                REAL-TIME ENVIRONMENT ACTIVE
+            </div>
+        </div>
+    </section>
+
+    <!-- ASSET TYPOLOGIES -->
+    <section class="typologies">
+        <div class="typologies-header">
+            <div class="micro-header mono">// BUILT FOR EVERY PROJECT TYPE</div>
+            <h2>Built For Every Scale Of Project.</h2>
+            <p>From tall commercial towers in Islamabad and Lahore to master-planned housing societies on the edge of the city — we build digital sales tools that match the size and value of your project, exactly.</p>
+        </div>
+
+        <div class="typologies-grid">
+            <div class="typology-card">
+                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80" alt="Commercial Skyscraper" class="typology-bg">
+                <div class="typology-overlay"></div>
+                <div class="typology-content">
+                    <span class="typology-tag mono">[01] COMMERCIAL PROJECTS</span>
+                    <h3>Commercial & Mixed-Use Plazas</h3>
+                    <p>Cinematic walkthroughs and interactive sales offices that help you lock in investor money and big retail tenants — before you even break ground.</p>
+                </div>
+            </div>
+
+            <div class="typology-card">
+                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" alt="Luxury Residential Villa" class="typology-bg">
+                <div class="typology-overlay"></div>
+                <div class="typology-content">
+                    <span class="typology-tag mono">[02] RESIDENTIAL DEVELOPMENTS</span>
+                    <h3>Master-Planned Residential</h3>
+                    <p>Beautiful 3D buildings and interactive unit customizers, so local buyers and overseas Pakistanis can tour and design their future home from any screen, anywhere in the world.</p>
+                </div>
+            </div>
+
+            <div class="typology-card">
+                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80" alt="Corporate Architecture" class="typology-bg">
+                <div class="typology-overlay"></div>
+                <div class="typology-content">
+                    <span class="typology-tag mono">[03] CORPORATE & B2B</span>
+                    <h3>Corporate Hubs & Masterplans</h3>
+                    <p>The same reliable, deadline-backed visual work we deliver for British American Tobacco — now available for multinational corporate projects, city masterplans, and big architectural bids.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Footer | Blueprint Engines</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Montserrat:wght@600;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- GLOBAL VARIABLES --- */
+        :root {
+            --bg-top: #0a0a0a;
+            --accent: #0047FF;
+            --text-primary: #FFFFFF;
+            --text-body: #A3A3A3;
+            --border-faint: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #111; /* To show contrast against the footer */
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Pushes footer to bottom */
+        }
+
+        .mono {
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        /* --- THE GLOBAL FOOTER ARCHITECTURE --- */
+        .global-footer {
+            position: relative;
+            background: var(--bg-top);
+            color: var(--text-body);
+            width: 100%;
+        }
+
+        /* Top Border & Left Cobalt Glow */
+        .global-footer::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: var(--text-primary);
+            z-index: 1;
+        }
+        .global-footer::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 20%;
+            height: 1px;
+            background: var(--accent);
+            box-shadow: 0 0 20px 3px rgba(0, 71, 255, 0.8);
+            z-index: 2;
+        }
+
+        /* 4-Column Grid */
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr 2.5fr 2.5fr;
+            gap: 60px;
+            padding: 80px 5% 60px 5%;
+        }
+
+        /* Column Headers */
+        .col-header {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+        }
+
+        /* --- COLUMN 1: BRAND ANCHOR --- */
+        .footer-col-1 .logo {
+            display: inline-flex;
+            gap: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+            margin-bottom: 16px;
+        }
+        .footer-col-1 .logo span:first-child { font-weight: 900; color: var(--text-primary); }
+        .footer-col-1 .logo span:last-child { font-weight: 600; color: var(--accent); }
+
+        .footer-col-1 .micro-copy {
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+
+        .footer-col-1 p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            max-width: 90%;
+        }
+
+        .trust-box {
+            display: inline-block;
+            border: 1px solid var(--border-faint);
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--text-primary);
+            letter-spacing: 1px;
+        }
+
+        /* --- COLUMN 2: NAVIGATION --- */
+        .footer-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .footer-nav a {
+            color: var(--text-body);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 300;
+            transition: color 0.3s ease;
+            position: relative;
+            width: fit-content;
+            padding-bottom: 2px;
+        }
+
+        /* Hover: Snap to White + Cobalt Underline */
+        .footer-nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent);
+            transition: width 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .footer-nav a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-nav a:hover::after {
+            width: 100%;
+        }
+
+        /* --- COLUMN 3: DIRECT COMMS --- */
+        .contact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .contact-label {
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        .contact-data {
+            color: var(--text-body);
+            font-weight: 300;
+        }
+
+        .contact-data.mono {
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        /* --- COLUMN 4: NETWORK & SOCIALS --- */
+        .social-icons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .social-icons a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border-faint);
+            transition: all 0.3s ease;
+        }
+
+        .social-icons svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: var(--text-primary);
+            stroke-width: 1.5;
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+            transition: stroke 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            border-color: var(--text-primary);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .social-icons a:hover svg {
+            stroke: var(--accent);
+        }
+
+        /* Brutalist Footer Button */
+        .btn-footer {
+            display: inline-block;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--text-primary);
+            padding: 16px 24px;
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-footer:hover {
+            background: var(--text-primary);
+            color: var(--bg-top);
+            border-color: var(--text-primary);
+        }
+
+        /* --- BOTTOM INFRASTRUCTURE BAR --- */
+        .footer-bottom-bar {
+            border-top: 1px solid #333333;
+            padding: 24px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bottom-copyright {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .bottom-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .bottom-links a {
+            color: #777;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.3s;
+        }
+
+        .bottom-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 50px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            .footer-bottom-bar {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            .bottom-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BEGIN GLOBAL FOOTER -->
+    <footer class="global-footer">
+        <div class="footer-grid">
+            
+            <!-- COLUMN 1: THE BRAND ANCHOR -->
+            <div class="footer-col-1">
+                <a href="index.html" class="logo">
+                    <span>BLUEPRINT</span><span>ENGINES</span>
+                </a>
+                <div class="micro-copy mono">// SELLING YOUR PROJECT BEFORE IT'S BUILT</div>
+                <p>We build 3D sales tools and virtual walkthroughs that help Pakistan's top developers sell more units, faster — before the first floor is even poured.</p>
+                
+            </div>
+
+            <!-- COLUMN 2: DIGITAL INFRASTRUCTURE -->
+            <div class="footer-col-2">
+                <div class="col-header mono">SYSTEM NAVIGATION</div>
+                <nav class="footer-nav">
+                    <a href="engineering-edge.html">The Engineering Edge</a>
+                    <a href="corporate-portfolio.html">Corporate Portfolio (BAT Showcase)</a>
+                    <a href="cad-audit.html">Phase 1: CAD Diagnostics</a>
+                    <a href="#">Commercial Architecture</a>
+                    <a href="#">Master-Planned Societies</a>
+                </nav>
+            </div>
+
+            <!-- COLUMN 3: SECURE COMMUNICATIONS -->
+            <div class="footer-col-3">
+                <div class="col-header mono">DIRECT COMMS</div>
+                <div class="contact-list">
+                    <div class="contact-item">
+                        <span class="contact-label">T: <span class="contact-data mono">+92 300 1234567</span></span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">E: <span class="contact-data mono">deploy@structureandpixel.com</span></span>
+                    </div>
+                    <div class="contact-item" style="margin-top: 8px;">
+                        <span class="contact-label">HQ:</span>
+                        <span class="contact-data">Corporate Tower, Blue Area, Islamabad</span>
+                    </div>
+                    <div class="contact-item" style="margin-top: 8px;">
+                        <span class="contact-label">Office Hours:</span>
+                        <span class="contact-data mono">OPERATING: 09:00 - 18:00 PKT</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMN 4: NETWORK & SOCIAL PIPELINES -->
+            <div class="footer-col-4">
+                <div class="col-header mono">NETWORK DATA</div>
+                <div class="social-icons">
+                    <!-- LinkedIn -->
+                    <a href="#" aria-label="LinkedIn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                            <rect x="2" y="9" width="4" height="12"></rect>
+                            <circle cx="4" cy="4" r="2"></circle>
+                        </svg>
+                    </a>
+                    <!-- Instagram -->
+                    <a href="#" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="2" y="2" width="20" height="20" rx="4" ry="4"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                    <!-- Custom Behance-style geometry icon (Minimalist representation) -->
+                    <a href="#" aria-label="Behance / ArtStation">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            <line x1="10" y1="12" x2="14" y2="12"></line>
+                        </svg>
+                    </a>
+                </div>
+                <a href="cad-audit.html" class="btn-footer">GET YOUR FREE AUDIT &rarr;</a>
+            </div>
+
+        </div>
+
+        <!-- THE BOTTOM INFRASTRUCTURE BAR -->
+        <div class="footer-bottom-bar">
+            <div class="bottom-copyright mono">
+                © 2026 STRUCTURE & PIXEL. ALL SYSTEMS SECURED.
+            </div>
+            <div class="bottom-links">
+                <a href="#">Non-Disclosure Agreement (NDA) Protocol</a>
+                <a href="#">Terms of Engineering</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    <!-- END GLOBAL FOOTER -->
+
+</body>
+</html>
+
+    <script>
+        // Parallax Effect for SPATIAL background text
+        window.addEventListener('scroll', () => {
+            const spatialText = document.querySelector('.spatial-text');
+            if(spatialText) spatialText.style.transform = `translate(-50%, calc(-50% + ${window.pageYOffset * 0.4}px))`;
+        });
+    </script>
+</body>
+</html>

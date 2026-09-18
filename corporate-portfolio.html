@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corporate Portfolio | Blueprint Engines</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Montserrat:wght@600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- [GLOBAL DESIGN SYSTEM] --- */
+        :root {
+            --bg-top: #0a0a0a;
+            --bg-bottom: #161616;
+            --accent: #0047FF;
+            --text-primary: #FFFFFF;
+            --text-body: #A3A3A3;
+            --border-faint: rgba(255, 255, 255, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background: var(--bg-top);
+            color: var(--text-body);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3 { font-family: 'Montserrat', sans-serif; color: var(--text-primary); }
+        .mono { font-family: 'Space Mono', monospace; text-transform: uppercase; }
+
+        /* Blueprint Grid Overlay */
+        .grid-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2; pointer-events: none;
+        }
+
+        /* Brutalist Buttons */
+        .btn {
+            display: inline-flex; justify-content: center; align-items: center;
+            padding: 16px 32px; font-family: 'Space Mono', monospace; font-weight: 700;
+            text-transform: uppercase; text-decoration: none; border-radius: 0;
+            transition: all 0.3s ease; cursor: pointer; text-align: center;
+        }
+        .btn-primary { background: var(--accent); color: var(--text-primary); border: 1px solid var(--accent); }
+        .btn-primary:hover { background: #0033cc; box-shadow: 0 0 20px rgba(0, 71, 255, 0.4); }
+
+        /* --- [HEADER] --- */
+        header {
+            position: fixed; top: 0; left: 0; right: 0;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 5%; background: rgba(10, 10, 10, 0.5);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            z-index: 100; border-bottom: 1px solid var(--border-faint);
+        }
+        .logo { display: flex; gap: 8px; font-size: 24px; letter-spacing: -0.5px; text-decoration: none; }
+        .logo span:first-child { font-weight: 900; color: var(--text-primary); }
+        .logo span:last-child { font-weight: 600; color: var(--accent); }
+        nav { display: flex; align-items: center; gap: 40px; }
+        nav a { color: var(--text-primary); text-decoration: none; font-weight: 300; font-size: 14px; transition: color 0.3s ease; }
+        nav a:hover, nav a.active { color: var(--accent); }
+        nav a.active { font-weight: 400; }
+
+        /* --- [SECTION 1: THE SHOWCASE HERO (FULL BLEED)] --- */
+        .showcase-hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 5%;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-faint);
+        }
+
+        .hero-video-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.3) contrast(1.2); /* Darkened high-res feel */
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+        }
+
+        .micro-header {
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+        }
+
+        .showcase-hero h1 {
+            font-weight: 900;
+            font-size: 72px;
+            line-height: 1.05;
+            margin-bottom: 24px;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+        }
+
+        .showcase-hero p {
+            font-size: 20px;
+            font-weight: 300;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Bottom-Anchored Filter Menu */
+        .filter-nav {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 24px 5%;
+            background: rgba(10,10,10,0.6);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid var(--border-faint);
+            z-index: 10;
+        }
+
+        .filter-nav a {
+            color: var(--text-body);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .filter-nav a:hover, .filter-nav a.active {
+            color: var(--text-primary);
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* --- [SECTION 2: THE INTERACTIVE GRID] --- */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: 400px; /* Base height for rows */
+            gap: 0; /* Pure gapless edge-to-edge */
+            width: 100%;
+        }
+
+        .project-card {
+            position: relative;
+            display: block;
+            border-right: 1px solid var(--border-faint);
+            border-bottom: 1px solid var(--border-faint);
+            overflow: hidden;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Asymmetrical Masonry Grid Spans */
+        .project-card.large { grid-column: span 2; grid-row: span 2; }
+        .project-card.wide { grid-column: span 2; grid-row: span 1; }
+        .project-card.tall { grid-column: span 1; grid-row: span 2; }
+        
+        .project-card:nth-child(4n) { border-right: none; }
+
+        .card-media {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(1.2) brightness(0.7);
+            transition: filter 0.1s ease-out, transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* The Slide-Up Glassmorphism Panel */
+        .card-data-panel {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 30px;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--accent);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .data-row {
+            display: flex;
+            font-size: 13px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .data-row span {
+            color: var(--text-body);
+            width: 120px;
+            flex-shrink: 0;
+        }
+        
+        .data-row strong {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* Hover Interaction (The Magic) */
+        .project-card:hover .card-media {
+            filter: grayscale(0%) contrast(1.0) brightness(1);
+            transform: scale(1.05);
+        }
+
+        .project-card:hover .card-data-panel {
+            transform: translateY(0);
+        }
+
+        /* --- [FOOTER] --- */
+        footer {
+            padding: 120px 5% 60px 5%;
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center;
+            background: #050505;
+        }
+        .footer-content { max-width: 800px; margin-bottom: 60px; }
+        .footer-content h2 { font-size: 48px; font-weight: 900; margin-bottom: 24px; letter-spacing: -1px; }
+        .footer-content p { font-size: 20px; line-height: 1.6; margin-bottom: 40px; }
+        .footer-bottom { margin-top: 80px; border-top: 1px solid #222; padding-top: 40px; width: 100%; color: #555; font-size: 14px; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1200px) {
+            .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
+            .project-card.large, .project-card.wide { grid-column: span 2; }
+            .project-card:nth-child(2n) { border-right: none; }
+            .project-card:nth-child(4n) { border-right: none; } /* Reset previous rule */
+        }
+
+        @media (max-width: 768px) {
+            .showcase-hero h1 { font-size: 48px; }
+            .filter-nav { flex-wrap: wrap; gap: 15px; padding: 20px; }
+            .portfolio-grid { grid-template-columns: 1fr; grid-auto-rows: 350px; }
+            .project-card.large, .project-card.wide, .project-card.tall { grid-column: span 1; grid-row: span 1; }
+            .project-card { border-right: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-overlay"></div>
+
+    <header>
+        <a href="index.html" class="logo">
+            <span>BLUEPRINT</span><span>ENGINES</span>
+        </a>
+        <nav>
+            <a href="engineering-edge.html">The Engineering Edge</a>
+            <a href="corporate-portfolio.html" class="active">Corporate Portfolio</a>
+            <a href="cad-audit.html" class="btn btn-primary mono" style="padding: 10px 20px; font-size: 12px;">[ GET A FREE AUDIT ]</a>
+        </nav>
+    </header>
+
+    <!-- SECTION 1: THE SHOWCASE HERO -->
+    <section class="showcase-hero">
+        <img src="chero.jpeg" alt="Cinematic Architectural Background" class="hero-video-bg">
+        
+        <div class="hero-content">
+            <div class="micro-header mono">// OUR WORK, BUILT TO SELL</div>
+            <h1>Real Projects.<br>Real Results.</h1>
+            <p>See the digital sales tools behind Pakistan's top commercial towers, housing societies, and corporate offices. Built for speed. Built to close deals.</p>
+        </div>
+
+        
+    </section>
+
+    <!-- SECTION 2: THE INTERACTIVE GRID -->
+    <section class="portfolio-grid">
+        
+        <!-- Card 1: Large Span (Featured) -->
+        <a href="#" class="project-card large">
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80" alt="Commercial Tower" class="card-media">
+            <div class="card-data-panel mono">
+                <div class="data-row"><span>PROJECT:</span> Apex Commercial Tower</div>
+                <div class="data-row"><span>SCALE:</span> 1.2M Sq Ft</div>
+                <div class="data-row"><span>TECH STACK:</span> <strong>Unreal Engine 5 | Drone CGI Match</strong></div>
+            </div>
+        </a>
+
+        <!-- Card 2: Standard -->
+        <a href="#" class="project-card">
+            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" alt="Luxury Villa" class="card-media">
+            <div class="card-data-panel mono">
+                <div class="data-row"><span>PROJECT:</span> Obsidian Villas (Beta)</div>
+                <div class="data-row"><span>SCALE:</span> 120 Units</div>
+                <div class="data-row"><span>TECH STACK:</span> <strong>Web3D Configurator</strong></div>
+            </div>
+        </a>
+
+        <!-- Card 3: Standard -->
+        <a href="#" class="project-card">
+            <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80" alt="Masterplan" class="card-media">
+            <div class="card-data-panel mono">
+                <div class="data-row"><span>PROJECT:</span> Coastal Masterplan</div>
+                <div class="data-row"><span>SCALE:</span> 4,500 Acres</div>
+                <div class="data-row"><span>TECH STACK:</span> <strong>GIS Data | UE5 Streaming</strong></div>
+            </div>
+        </a>
+
+        <!-- Card 4: Wide Span -->
+        <a href="#" class="project-card wide">
+            <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80" alt="BAT Infrastructure" class="card-media">
+            <div class="card-data-panel mono">
+                <div class="data-row"><span>PROJECT:</span> BAT Corporate Infrastructure</div>
+                <div class="data-row"><span>SCALE:</span> 250,000 Sq Ft HQ</div>
+                <div class="data-row"><span>TECH STACK:</span> <strong>BIM Ingestion | 60FPS Interactive</strong></div>
+            </div>
+        </a>
+
+        <!-- Card 5: Standard -->
+        <a href="#" class="project-card">
+            <img src="https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&w=800&q=80" alt="XR Showroom" class="card-media">
+            <div class="card-data-panel mono">
+                <div class="data-row"><span>PROJECT:</span> The Horizon VIP Center</div>
+                <div class="data-row"><span>SCALE:</span> Physical Showroom</div>
+                <div class="data-row"><span>TECH STACK:</span> <strong>Enterprise VR | Touchscreen Kiosk</strong></div>
+            </div>
+        </a>
+
+        <!-- Card 6: Standard -->
+        <a href="#" class="project-card">
+            <img src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?auto=format&fit=crop&w=800&q=80" alt="Penthouse" class="card-media">
+            <div class="card-data-panel mono">
+                <div class="data-row"><span>PROJECT:</span> Sky-Level Penthouse</div>
+                <div class="data-row"><span>SCALE:</span> 12,000 Sq Ft</div>
+                <div class="data-row"><span>TECH STACK:</span> <strong>Ray-Traced WebGL</strong></div>
+            </div>
+        </a>
+
+    </section>
+
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Footer | Blueprint Engines</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Montserrat:wght@600;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- GLOBAL VARIABLES --- */
+        :root {
+            --bg-top: #0a0a0a;
+            --accent: #0047FF;
+            --text-primary: #FFFFFF;
+            --text-body: #A3A3A3;
+            --border-faint: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #111; /* To show contrast against the footer */
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Pushes footer to bottom */
+        }
+
+        .mono {
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        /* --- THE GLOBAL FOOTER ARCHITECTURE --- */
+        .global-footer {
+            position: relative;
+            background: var(--bg-top);
+            color: var(--text-body);
+            width: 100%;
+        }
+
+        /* Top Border & Left Cobalt Glow */
+        .global-footer::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: var(--text-primary);
+            z-index: 1;
+        }
+        .global-footer::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 20%;
+            height: 1px;
+            background: var(--accent);
+            box-shadow: 0 0 20px 3px rgba(0, 71, 255, 0.8);
+            z-index: 2;
+        }
+
+        /* 4-Column Grid */
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr 2.5fr 2.5fr;
+            gap: 60px;
+            padding: 80px 5% 60px 5%;
+        }
+
+        /* Column Headers */
+        .col-header {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+        }
+
+        /* --- COLUMN 1: BRAND ANCHOR --- */
+        .footer-col-1 .logo {
+            display: inline-flex;
+            gap: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+            margin-bottom: 16px;
+        }
+        .footer-col-1 .logo span:first-child { font-weight: 900; color: var(--text-primary); }
+        .footer-col-1 .logo span:last-child { font-weight: 600; color: var(--accent); }
+
+        .footer-col-1 .micro-copy {
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+
+        .footer-col-1 p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            max-width: 90%;
+        }
+
+        .trust-box {
+            display: inline-block;
+            border: 1px solid var(--border-faint);
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--text-primary);
+            letter-spacing: 1px;
+        }
+
+        /* --- COLUMN 2: NAVIGATION --- */
+        .footer-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .footer-nav a {
+            color: var(--text-body);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 300;
+            transition: color 0.3s ease;
+            position: relative;
+            width: fit-content;
+            padding-bottom: 2px;
+        }
+
+        /* Hover: Snap to White + Cobalt Underline */
+        .footer-nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent);
+            transition: width 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .footer-nav a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-nav a:hover::after {
+            width: 100%;
+        }
+
+        /* --- COLUMN 3: DIRECT COMMS --- */
+        .contact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .contact-label {
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        .contact-data {
+            color: var(--text-body);
+            font-weight: 300;
+        }
+
+        .contact-data.mono {
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        /* --- COLUMN 4: NETWORK & SOCIALS --- */
+        .social-icons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .social-icons a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border-faint);
+            transition: all 0.3s ease;
+        }
+
+        .social-icons svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: var(--text-primary);
+            stroke-width: 1.5;
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+            transition: stroke 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            border-color: var(--text-primary);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .social-icons a:hover svg {
+            stroke: var(--accent);
+        }
+
+        /* Brutalist Footer Button */
+        .btn-footer {
+            display: inline-block;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--text-primary);
+            padding: 16px 24px;
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-footer:hover {
+            background: var(--text-primary);
+            color: var(--bg-top);
+            border-color: var(--text-primary);
+        }
+
+        /* --- BOTTOM INFRASTRUCTURE BAR --- */
+        .footer-bottom-bar {
+            border-top: 1px solid #333333;
+            padding: 24px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bottom-copyright {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .bottom-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .bottom-links a {
+            color: #777;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.3s;
+        }
+
+        .bottom-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 50px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            .footer-bottom-bar {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            .bottom-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BEGIN GLOBAL FOOTER -->
+    <footer class="global-footer">
+        <div class="footer-grid">
+            
+            <!-- COLUMN 1: THE BRAND ANCHOR -->
+            <div class="footer-col-1">
+                <a href="index.html" class="logo">
+                    <span>BLUEPRINT</span><span>ENGINES</span>
+                </a>
+                <div class="micro-copy mono">// SELLING YOUR PROJECT BEFORE IT'S BUILT</div>
+                <p>We build 3D sales tools and virtual walkthroughs that help Pakistan's top developers sell more units, faster — before the first floor is even poured.</p>
+                
+            </div>
+
+            <!-- COLUMN 2: DIGITAL INFRASTRUCTURE -->
+            <div class="footer-col-2">
+                <div class="col-header mono">SYSTEM NAVIGATION</div>
+                <nav class="footer-nav">
+                    <a href="engineering-edge.html">The Engineering Edge</a>
+                    <a href="corporate-portfolio.html">Corporate Portfolio (BAT Showcase)</a>
+                    <a href="cad-audit.html">Phase 1: CAD Diagnostics</a>
+                    <a href="#">Commercial Architecture</a>
+                    <a href="#">Master-Planned Societies</a>
+                </nav>
+            </div>
+
+            <!-- COLUMN 3: SECURE COMMUNICATIONS -->
+            <div class="footer-col-3">
+                <div class="col-header mono">DIRECT COMMS</div>
+                <div class="contact-list">
+                    <div class="contact-item">
+                        <span class="contact-label">T: <span class="contact-data mono">+92 300 1234567</span></span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">E: <span class="contact-data mono">deploy@structureandpixel.com</span></span>
+                    </div>
+                    <div class="contact-item" style="margin-top: 8px;">
+                        <span class="contact-label">HQ:</span>
+                        <span class="contact-data">Corporate Tower, Blue Area, Islamabad</span>
+                    </div>
+                    <div class="contact-item" style="margin-top: 8px;">
+                        <span class="contact-label">Office Hours:</span>
+                        <span class="contact-data mono">OPERATING: 09:00 - 18:00 PKT</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMN 4: NETWORK & SOCIAL PIPELINES -->
+            <div class="footer-col-4">
+                <div class="col-header mono">NETWORK DATA</div>
+                <div class="social-icons">
+                    <!-- LinkedIn -->
+                    <a href="#" aria-label="LinkedIn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                            <rect x="2" y="9" width="4" height="12"></rect>
+                            <circle cx="4" cy="4" r="2"></circle>
+                        </svg>
+                    </a>
+                    <!-- Instagram -->
+                    <a href="#" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="2" y="2" width="20" height="20" rx="4" ry="4"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                    <!-- Custom Behance-style geometry icon (Minimalist representation) -->
+                    <a href="#" aria-label="Behance / ArtStation">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            <line x1="10" y1="12" x2="14" y2="12"></line>
+                        </svg>
+                    </a>
+                </div>
+                <a href="cad-audit.html" class="btn-footer">GET YOUR FREE AUDIT &rarr;</a>
+            </div>
+
+        </div>
+
+        <!-- THE BOTTOM INFRASTRUCTURE BAR -->
+        <div class="footer-bottom-bar">
+            <div class="bottom-copyright mono">
+                © 2026 STRUCTURE & PIXEL. ALL SYSTEMS SECURED.
+            </div>
+            <div class="bottom-links">
+                <a href="#">Non-Disclosure Agreement (NDA) Protocol</a>
+                <a href="#">Terms of Engineering</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    <!-- END GLOBAL FOOTER -->
+
+</body>
+</html>
+
+</body>
+</html>

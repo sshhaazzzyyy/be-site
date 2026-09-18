@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initiate CAD Audit | Blueprint Engines</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Montserrat:wght@600;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- [GLOBAL DESIGN SYSTEM] --- */
+        :root {
+            --bg-top: #0a0a0a;
+            --bg-bottom: #161616;
+            --accent: #0047FF;
+            --text-primary: #FFFFFF;
+            --text-body: #A3A3A3;
+            --border-faint: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(to bottom, var(--bg-top), var(--bg-bottom));
+            color: var(--text-body);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-primary);
+        }
+
+        .mono {
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        /* Blueprint Grid Overlay */
+        .grid-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* --- [HEADER & NAVIGATION] --- */
+        header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 100;
+            border-bottom: 1px solid var(--border-faint);
+        }
+
+        .logo {
+            display: flex;
+            gap: 8px;
+            font-size: 24px;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+        .logo span:first-child { font-weight: 900; color: var(--text-primary); }
+        .logo span:last-child { font-weight: 600; color: var(--accent); }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+        nav a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+        nav a:hover { color: var(--accent); }
+
+        /* --- [SECTION 1: THE INGESTION PORTAL] --- */
+        .ingestion-portal {
+            display: flex;
+            min-height: 100vh;
+            padding: 140px 5% 100px 5%;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .portal-left {
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .micro-header {
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+        }
+
+        .portal-left h1 {
+            font-weight: 900;
+            font-size: 56px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -1.5px;
+        }
+
+        .portal-left p {
+            font-size: 18px;
+            line-height: 1.7;
+            margin-bottom: 40px;
+        }
+
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #222;
+            display: inline-flex;
+        }
+
+        .trust-badge svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 2;
+            stroke-linecap: square;
+        }
+
+        .trust-badge span {
+            font-size: 13px;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .portal-right {
+            flex: 1;
+        }
+
+        .intake-engine {
+            background: #121212;
+            border: 1px solid var(--border-faint);
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            color: var(--text-body);
+            font-size: 12px;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .line-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border-faint);
+            padding: 12px 0;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            border-radius: 0;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .line-input:focus {
+            border-bottom-color: var(--accent);
+        }
+
+        select.line-input {
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background: url('data:image/svg+xml;utf8,<svg fill="%23A3A3A3" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right center;
+        }
+        
+        select.line-input option {
+            background: #121212;
+            color: #fff;
+        }
+
+        .upload-zone {
+            border: 1px dashed rgba(255,255,255,0.3);
+            background: #0a0a0a;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(0, 71, 255, 0.05);
+        }
+
+        .upload-zone svg {
+            width: 40px;
+            height: 40px;
+            stroke: var(--text-body);
+            stroke-width: 1.5;
+            fill: none;
+            transition: stroke 0.3s;
+        }
+
+        .upload-zone:hover svg {
+            stroke: var(--accent);
+        }
+
+        .upload-zone span {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            appearance: none;
+            background: transparent;
+            border: 1px solid var(--border-faint);
+            width: 20px;
+            height: 20px;
+            border-radius: 0;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+
+        .checkbox-group input[type="checkbox"]::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+        }
+
+        .checkbox-group input[type="checkbox"]:checked::before {
+            transform: scale(1);
+        }
+
+        .checkbox-group input[type="checkbox"]:checked {
+            border-color: var(--accent);
+        }
+
+        .checkbox-group label {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text-body);
+            line-height: 1.5;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            background: var(--accent);
+            color: var(--text-primary);
+            border: 1px solid var(--accent);
+            padding: 20px;
+            width: 100%;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background: #0033cc;
+            box-shadow: 0 0 20px rgba(0, 71, 255, 0.4);
+        }
+
+        /* --- [SECTION 2: THE 48-HOUR SLA] --- */
+        .sla-protocol {
+            padding: 80px 5% 120px 5%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .sla-protocol h2 {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 60px;
+            letter-spacing: -0.5px;
+        }
+
+        .protocol-row {
+            display: flex;
+            padding: 30px 0;
+            border-top: 1px solid #222;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        .protocol-row:last-child {
+            border-bottom: 1px solid #222;
+        }
+
+        .protocol-time {
+            flex: 0 0 200px;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .protocol-desc {
+            flex: 1;
+            font-size: 18px;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* --- [SECTION 3: MINIMALIST FOOTER] --- */
+        footer {
+            background: #050505;
+            padding: 40px 5%;
+            text-align: center;
+            border-top: 1px solid #1a1a1a;
+        }
+
+        footer span {
+            color: #555;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .ingestion-portal {
+                flex-direction: column;
+                padding-top: 120px;
+            }
+            .portal-left {
+                max-width: 100%;
+                text-align: center;
+            }
+            .trust-badge {
+                margin: 0 auto;
+            }
+            .intake-engine {
+                padding: 30px;
+            }
+            .protocol-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .protocol-time {
+                flex: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-overlay"></div>
+
+    <header>
+        <a href="index.html" class="logo">
+            <span>BLUEPRINT</span><span>ENGINES</span>
+        </a>
+        <nav>
+            <a href="index.html">Return to Homepage</a>
+            <a href="corporate-portfolio.html">Corporate Portfolio</a>
+        </nav>
+    </header>
+
+    <section class="ingestion-portal">
+        <div class="portal-left">
+            <div class="micro-header mono">// STEP 1: SHARE YOUR FILES SAFELY</div>
+            <h1>Let's Plan Your Launch.</h1>
+            <p>Send us your floor plans or CAD files. Everything is covered by a strict Non-Disclosure Agreement (NDA), so your project stays 100% private. Within 48 hours, our team will hand you a custom digital sales plan — built around your exact buyers and your exact launch date.</p>
+            
+            <div class="trust-badge mono">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>FULLY ENCRYPTED // PROTECTED BY NDA</span>
+            </div>
+        </div>
+
+        <div class="portal-right">
+            <form class="intake-engine">
+                <div class="form-group mono">
+                    <label>[01] YOUR NAME / COMPANY NAME</label>
+                    <input type="text" class="line-input" required>
+                </div>
+                
+                <div class="form-group mono">
+                    <label>[02] PROJECT VALUE</label>
+                    <select class="line-input" required>
+                        <option value="" disabled selected>SELECT PROJECT VALUE</option>
+                        <option value="tier1">PKR 500M - 1B</option>
+                        <option value="tier2">PKR 1B - 5B</option>
+                        <option value="tier3">PKR 5B+</option>
+                    </select>
+                </div>
+
+                <div class="form-group mono">
+                    <label>[03] WHO ARE YOU SELLING TO?</label>
+                    <select class="line-input" required>
+                        <option value="" disabled selected>SELECT YOUR BUYERS</option>
+                        <option value="local">Local End-Users</option>
+                        <option value="domestic">Domestic Investors</option>
+                        <option value="overseas">Overseas Pakistanis</option>
+                    </select>
+                </div>
+
+                <div class="upload-zone">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                    </svg>
+                    <span class="mono">DROP YOUR CAD / BIM FILES HERE</span>
+                </div>
+
+                <label class="checkbox-group">
+                    <input type="checkbox" required>
+                    <span>Please send me an NDA before I upload my files.</span>
+                </label>
+
+                <button type="submit" class="btn-submit">[ SEND MY FILES SECURELY ]</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="sla-protocol">
+        <h2>What Happens Next.</h2>
+        
+        <div class="protocol-row">
+            <div class="protocol-time mono">HOUR 0-12 // WE SECURE YOUR FILES</div>
+            <div class="protocol-desc">We safely process your files and strip out anything you don't need us to see.</div>
+        </div>
+        
+        <div class="protocol-row">
+            <div class="protocol-time mono">HOUR 12-24 // WE STUDY YOUR PROJECT</div>
+            <div class="protocol-desc">We look closely at your building and pick the right technology — Unreal Engine or WebGL — based on who you're selling to.</div>
+        </div>
+        
+        <div class="protocol-row">
+            <div class="protocol-time mono">HOUR 24-48 // WE SHOW YOU THE PLAN</div>
+            <div class="protocol-desc">We walk you through a custom plan — cost, timeline, and technology — showing exactly how to launch your digital sales tool and start selling faster.</div>
+        </div>
+    </section>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Footer | Blueprint Engines</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Montserrat:wght@600;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- GLOBAL VARIABLES --- */
+        :root {
+            --bg-top: #0a0a0a;
+            --accent: #0047FF;
+            --text-primary: #FFFFFF;
+            --text-body: #A3A3A3;
+            --border-faint: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #111; /* To show contrast against the footer */
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Pushes footer to bottom */
+        }
+
+        .mono {
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        /* --- THE GLOBAL FOOTER ARCHITECTURE --- */
+        .global-footer {
+            position: relative;
+            background: var(--bg-top);
+            color: var(--text-body);
+            width: 100%;
+        }
+
+        /* Top Border & Left Cobalt Glow */
+        .global-footer::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: var(--text-primary);
+            z-index: 1;
+        }
+        .global-footer::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 20%;
+            height: 1px;
+            background: var(--accent);
+            box-shadow: 0 0 20px 3px rgba(0, 71, 255, 0.8);
+            z-index: 2;
+        }
+
+        /* 4-Column Grid */
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr 2.5fr 2.5fr;
+            gap: 60px;
+            padding: 80px 5% 60px 5%;
+        }
+
+        /* Column Headers */
+        .col-header {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+        }
+
+        /* --- COLUMN 1: BRAND ANCHOR --- */
+        .footer-col-1 .logo {
+            display: inline-flex;
+            gap: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+            margin-bottom: 16px;
+        }
+        .footer-col-1 .logo span:first-child { font-weight: 900; color: var(--text-primary); }
+        .footer-col-1 .logo span:last-child { font-weight: 600; color: var(--accent); }
+
+        .footer-col-1 .micro-copy {
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+
+        .footer-col-1 p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            max-width: 90%;
+        }
+
+        .trust-box {
+            display: inline-block;
+            border: 1px solid var(--border-faint);
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--text-primary);
+            letter-spacing: 1px;
+        }
+
+        /* --- COLUMN 2: NAVIGATION --- */
+        .footer-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .footer-nav a {
+            color: var(--text-body);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 300;
+            transition: color 0.3s ease;
+            position: relative;
+            width: fit-content;
+            padding-bottom: 2px;
+        }
+
+        /* Hover: Snap to White + Cobalt Underline */
+        .footer-nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent);
+            transition: width 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .footer-nav a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-nav a:hover::after {
+            width: 100%;
+        }
+
+        /* --- COLUMN 3: DIRECT COMMS --- */
+        .contact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .contact-label {
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        .contact-data {
+            color: var(--text-body);
+            font-weight: 300;
+        }
+
+        .contact-data.mono {
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        /* --- COLUMN 4: NETWORK & SOCIALS --- */
+        .social-icons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .social-icons a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border-faint);
+            transition: all 0.3s ease;
+        }
+
+        .social-icons svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: var(--text-primary);
+            stroke-width: 1.5;
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+            transition: stroke 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            border-color: var(--text-primary);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .social-icons a:hover svg {
+            stroke: var(--accent);
+        }
+
+        /* Brutalist Footer Button */
+        .btn-footer {
+            display: inline-block;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--text-primary);
+            padding: 16px 24px;
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-footer:hover {
+            background: var(--text-primary);
+            color: var(--bg-top);
+            border-color: var(--text-primary);
+        }
+
+        /* --- BOTTOM INFRASTRUCTURE BAR --- */
+        .footer-bottom-bar {
+            border-top: 1px solid #333333;
+            padding: 24px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bottom-copyright {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .bottom-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .bottom-links a {
+            color: #777;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.3s;
+        }
+
+        .bottom-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 50px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            .footer-bottom-bar {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            .bottom-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BEGIN GLOBAL FOOTER -->
+    <footer class="global-footer">
+        <div class="footer-grid">
+            
+            <!-- COLUMN 1: THE BRAND ANCHOR -->
+            <div class="footer-col-1">
+                <a href="index.html" class="logo">
+                    <span>BLUEPRINT</span><span>ENGINES</span>
+                </a>
+                <div class="micro-copy mono">// SELLING YOUR PROJECT BEFORE IT'S BUILT</div>
+                <p>We build 3D sales tools and virtual walkthroughs that help Pakistan's top developers sell more units, faster — before the first floor is even poured.</p>
+                
+            </div>
+
+            <!-- COLUMN 2: DIGITAL INFRASTRUCTURE -->
+            <div class="footer-col-2">
+                <div class="col-header mono">SYSTEM NAVIGATION</div>
+                <nav class="footer-nav">
+                    <a href="engineering-edge.html">The Engineering Edge</a>
+                    <a href="corporate-portfolio.html">Corporate Portfolio (BAT Showcase)</a>
+                    <a href="cad-audit.html">Phase 1: CAD Diagnostics</a>
+                    <a href="#">Commercial Architecture</a>
+                    <a href="#">Master-Planned Societies</a>
+                </nav>
+            </div>
+
+            <!-- COLUMN 3: SECURE COMMUNICATIONS -->
+            <div class="footer-col-3">
+                <div class="col-header mono">DIRECT COMMS</div>
+                <div class="contact-list">
+                    <div class="contact-item">
+                        <span class="contact-label">T: <span class="contact-data mono">+92 300 1234567</span></span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">E: <span class="contact-data mono">deploy@structureandpixel.com</span></span>
+                    </div>
+                    <div class="contact-item" style="margin-top: 8px;">
+                        <span class="contact-label">HQ:</span>
+                        <span class="contact-data">Corporate Tower, Blue Area, Islamabad</span>
+                    </div>
+                    <div class="contact-item" style="margin-top: 8px;">
+                        <span class="contact-label">Office Hours:</span>
+                        <span class="contact-data mono">OPERATING: 09:00 - 18:00 PKT</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMN 4: NETWORK & SOCIAL PIPELINES -->
+            <div class="footer-col-4">
+                <div class="col-header mono">NETWORK DATA</div>
+                <div class="social-icons">
+                    <!-- LinkedIn -->
+                    <a href="#" aria-label="LinkedIn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                            <rect x="2" y="9" width="4" height="12"></rect>
+                            <circle cx="4" cy="4" r="2"></circle>
+                        </svg>
+                    </a>
+                    <!-- Instagram -->
+                    <a href="#" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="2" y="2" width="20" height="20" rx="4" ry="4"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                    <!-- Custom Behance-style geometry icon (Minimalist representation) -->
+                    <a href="#" aria-label="Behance / ArtStation">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            <line x1="10" y1="12" x2="14" y2="12"></line>
+                        </svg>
+                    </a>
+                </div>
+                <a href="cad-audit.html" class="btn-footer">GET YOUR FREE AUDIT &rarr;</a>
+            </div>
+
+        </div>
+
+        <!-- THE BOTTOM INFRASTRUCTURE BAR -->
+        <div class="footer-bottom-bar">
+            <div class="bottom-copyright mono">
+                © 2026 STRUCTURE & PIXEL. ALL SYSTEMS SECURED.
+            </div>
+            <div class="bottom-links">
+                <a href="#">Non-Disclosure Agreement (NDA) Protocol</a>
+                <a href="#">Terms of Engineering</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    <!-- END GLOBAL FOOTER -->
+
+</body>
+</html>
+
+</body>
+</html>
