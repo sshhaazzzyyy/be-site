@@ -61,7 +61,7 @@
         .rigor-block p { font-size: 16px; line-height: 1.6; }
 
         .divider-banner { background: #111; border-top: 1px solid #222; border-bottom: 1px solid #222; padding: 30px 0; overflow: hidden; white-space: nowrap; position: relative; }
-        .marquee { display: flex; gap: 40px; animation: marqueeScroll 20s linear infinite; }
+        .marquee { display: flex; gap: 40px; animation: marqueeScroll 15s linear infinite; }
         .marquee span { font-size: 20px; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
         @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
@@ -127,8 +127,8 @@
         }
         @media (max-width: 600px) {
             .logo { font-size: 18px !important;}
-            .marquee span { font-size: 14px; letter-spacing: 0.5px; }
-            .marquee { gap: 20px; }
+            .marquee span {font-size: 10px !important;letter-spacing: 1px !important;}
+            .marquee {gap: 15px !important;}
             .footer-grid { grid-template-columns: 1fr; gap: 40px; }
             .footer-bottom-bar { flex-direction: column; gap: 16px; text-align: center; }
             .bottom-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
